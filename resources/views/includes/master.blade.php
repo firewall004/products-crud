@@ -21,38 +21,6 @@
 	<link id="favicon" type="image/x-icon" rel="icon" href="https://calendar.google.com/googlecalendar/images/favicons_2020q4/calendar_12.ico">
 </head>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light" role="navigation">
-	<span class="navbar-brand">Products</span>
-	<span class="navbar-brand"> | </span>
-
-	<div class="collapse navbar-collapse" id="navbarSupportedContent">
-		<ul class="nav navbar-nav mr-auto">
-			<li class="nav-item active">
-				<a class="nav-link" href="">Products</a>
-			</li>
-			<li class="nav-item active">
-				<a class="nav-link" href="">Events</a>
-			</li>
-		</ul>
-		<ul class="nav navbar-nav navbar-right pr-4">
-			<li class="nav-item">
-				<a class="nav-link" href="">Logout</a>
-			</li>
-		</ul>
-	</div>
-</nav>
-
-<div class="container" style="padding-bottom: 120px;">
+<div class="main-container">
 	@yield('content')
 </div>
-
-<footer class="footer navbar-fixed-bottom" style="bottom: 0; background-color: #f5f5f5; width: 100%;">
-	<div class="container-fluid text-center text-md-left">
-		<div class="row">
-			<hr class="clearfix w-100 d-md-none pb-3">
-		</div>
-	</div>
-	<div class="footer-copyright text-center py-3">© 2021 Copyright:
-		<a href="https://github.com/firewall004">Vivek Kumar</a>
-	</div>
-</footer>
