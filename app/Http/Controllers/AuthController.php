@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Models\User;
+use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
@@ -12,39 +14,50 @@ use Throwable;
 
 class AuthController extends Controller
 {
-	public function register(Request $request)
+	public function register(Request $request): JsonResponse
 	{
-		$request->validate([
-			'name' => 'required|string|max:255',
-			'email' => 'required|string|email|max:255|unique:users',
-			'password' => ['required', Password::defaults()],
-			'confirm_password' => 'required|same:password'
-		]);
+		try {
+			$request->validate([
+				'name' => 'required|string|max:255',
+				'email' => 'required|string|email|max:255|unique:users',
+				'password' => ['required', Password::defaults()],
+				'confirm_password' => 'required|same:password',
+				// 'agree_to_terms' => 'in:true'
+			]);
 
-		$user = User::create([
-			'name' => $request->name,
-			'email' => $request->email,
-			'password' => Hash::make($request->password),
-		]);
+			$user = User::create([
+				'name' => $request->name,
+				'email' => $request->email,
+				'password' => Hash::make($request->password),
+			]);
 
-		$token = $user->createToken('authtoken');
+			$token = $user->createToken('authtoken');
 
-		return response()->json(
-			[
-				'message' => 'User Registered',
-				'data' => ['token' => $token->plainTextToken, 'user' => $user->id]
-			]
-		);
+			return Response::json(
+				[
+					'message' => 'User Registered',
+					'data' => ['token' => $token->plainTextToken, 'user' => $user->id]
+				],
+				200
+			);
+		} catch (Throwable $th) {
+			return Response::json(
+				[
+					'message' => $th->getMessage()
+				],
+				400
+			);
+		}
 	}
 
-	public function login(LoginRequest $request)
+	public function login(LoginRequest $request): JsonResponse
 	{
 		try {
 			$request->authenticate();
 
 			$token = $request->user()->createToken('authtoken');
 
-			return response()->json(
+			return Response::json(
 				[
 					'message' => 'User Login Successfully',
 					'data' => [
@@ -64,7 +77,18 @@ class AuthController extends Controller
 
 	}
 
-	public function logout(Request $request)
+	public function logout(Request $request): JsonResponse
 	{
+		$request->user()->tokens()->delete();
+
+		return Response::json(
+			[
+				'message' => 'Logged out',
+				'data' => [
+					'user' => $request->user()->id
+				]
+			],
+			200
+		);
 	}
 }
