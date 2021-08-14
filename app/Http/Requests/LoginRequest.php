@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Admin;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
@@ -31,12 +33,28 @@ class LoginRequest extends FormRequest
 		];
 	}
 
-	public function authenticate(): void
+	public function authenticateAdmin(): Admin
 	{
-		if (!Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+		$admin = Admin::where('email', $this->email)->first();
+
+		if (!$admin || !Hash::check($this->password, $admin->password)) {
 			throw ValidationException::withMessages([
 				'email' => __('auth.failed'),
 			]);
 		}
+
+		return $admin;
+	}
+
+	public function authenticateVendor(): User
+	{
+		$vendor = User::where('email', $this->email)->first();
+		if (!$vendor || !Hash::check($this->password, $vendor->password)) {
+			throw ValidationException::withMessages([
+				'email' => __('auth.failed'),
+			]);
+		}
+
+		return $vendor;
 	}
 }

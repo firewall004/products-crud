@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
+use App\Models\Admin;
 use App\Models\User;
-use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +15,11 @@ use Throwable;
 
 class AuthController extends Controller
 {
+	public function test()
+	{
+		return 'Admin';
+	}
+
 	public function register(Request $request): JsonResponse
 	{
 		try {
@@ -28,11 +33,20 @@ class AuthController extends Controller
 
 			DB::beginTransaction();
 
-			$user = User::create([
-				'name' => $request->name,
-				'email' => $request->email,
-				'password' => Hash::make($request->password),
-			]);
+			if ($request->is_admin) {
+				$user = Admin::create([
+					'name' => $request->name,
+					'email' => $request->email,
+					'password' => Hash::make($request->password),
+				]);
+			} else {
+				$user = User::create([
+					'name' => $request->name,
+					'email' => $request->email,
+					'password' => Hash::make($request->password),
+				]);
+			}
+
 
 			$token = $user->createToken('authtoken');
 			DB::commit();
@@ -54,18 +68,44 @@ class AuthController extends Controller
 		}
 	}
 
-	public function login(LoginRequest $request): JsonResponse
+	public function loginAsVendor(LoginRequest $request): JsonResponse
 	{
 		try {
-			$request->authenticate();
+			$vendor = $request->authenticateVendor();
 
-			$token = $request->user()->createToken('authtoken');
+			$token = $vendor->createToken('authtoken', ['role:vendor']);
 
 			return Response::json(
 				[
 					'message' => 'User Login Successfully',
 					'data' => [
-						'user' => $request->user()->id,
+						'user' => $vendor->id,
+						'token' => $token->plainTextToken
+					]
+				]
+			);
+		} catch (Throwable $th) {
+			return Response::json(
+				[
+					'message' => 'Invalid login'
+				],
+				401
+			);
+		}
+	}
+
+	public function loginAsAdmin(LoginRequest $request): JsonResponse
+	{
+		try {
+			$admin = $request->authenticateAdmin();
+
+			$token = $admin->createToken('authtoken', ['role:admin']);
+
+			return Response::json(
+				[
+					'message' => 'User Login Successfully',
+					'data' => [
+						'user' => $admin->id,
 						'token' => $token->plainTextToken
 					]
 				]
