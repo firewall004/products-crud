@@ -7,6 +7,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Validation\Rules\Password;
@@ -25,6 +26,8 @@ class AuthController extends Controller
 				// 'agree_to_terms' => 'in:true'
 			]);
 
+			DB::beginTransaction();
+
 			$user = User::create([
 				'name' => $request->name,
 				'email' => $request->email,
@@ -32,7 +35,7 @@ class AuthController extends Controller
 			]);
 
 			$token = $user->createToken('authtoken');
-
+			DB::commit();
 			return Response::json(
 				[
 					'message' => 'User Registered',
@@ -41,6 +44,7 @@ class AuthController extends Controller
 				200
 			);
 		} catch (Throwable $th) {
+			DB::rollBack();
 			return Response::json(
 				[
 					'message' => $th->getMessage()
