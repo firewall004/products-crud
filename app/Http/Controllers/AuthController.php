@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Validation\Rules\Password;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -34,8 +37,31 @@ class AuthController extends Controller
 		);
 	}
 
-	public function login(Request $request)
+	public function login(LoginRequest $request)
 	{
+		try {
+			$request->authenticate();
+
+			$token = $request->user()->createToken('authtoken');
+
+			return response()->json(
+				[
+					'message' => 'User Login Successfully',
+					'data' => [
+						'user' => $request->user()->id,
+						'token' => $token->plainTextToken
+					]
+				]
+			);
+		} catch (Throwable $th) {
+			return Response::json(
+				[
+					'message' => 'Invalid login'
+				],
+				401
+			);
+		}
+
 	}
 
 	public function logout(Request $request)
